@@ -1,25 +1,52 @@
 import React from 'react';
-import logo from './logo.svg';
+import {ApolloClient, InMemoryCache, ApolloProvider, HttpLink, from} from "@apollo/client"
+import {onError} from "@apollo/client/link/error"
+import {
+  BrowserRouter as Router, Switch, Route} from "react-router-dom";
 import './App.css';
+import Continents from "./Components/Continents"
+import ContinentDetails from "./Components/ContinentDetails"
+
+
+const errorLink = onError(({graphqlErrors, networkError})=>{
+  if (graphqlErrors){
+    graphqlErrors.map(({message, location, path})=>(
+      alert(`GraphQL error: ${message}`)
+    )) 
+  }
+})
+
+const link = from([
+  errorLink,
+  new HttpLink({
+    uri: "https://countries.trevorblades.com/"
+  })
+])
+
+const client = new ApolloClient({
+  cache: new InMemoryCache(),
+  link: link
+})
+
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ApolloProvider client={client}>
+      <Router>
+        <div className="App">
+          {/* <Continents /> */}
+          {/* <ContinentDetails /> */}
+          <Switch>
+            <Route exact path="/">
+              <Continents />
+            </Route>
+            <Route path="/:continentName" component={ContinentDetails} />
+          </Switch>
+        </div>
+      </Router>
+    </ApolloProvider>
+    
+    
   );
 }
 
